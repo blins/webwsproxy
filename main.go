@@ -6,6 +6,7 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"strings"
 
 	"github.com/gorilla/websocket"
 )
@@ -19,12 +20,12 @@ var (
 			return o == *origin //"http://127.0.0.1:8080"
 		},
 	}
-	channels  = &Channels{}
-	addrWs    = flag.String("wsaddr", ":8080", "websocket service address")
-	addrHt    = flag.String("addr", ":8000", "http service address")
-	origin    = flag.String("origin", "http://localhost:8080", "origin for check")
+	channels   = &Channels{}
+	addrWs     = flag.String("wsaddr", ":8080", "websocket service address")
+	addrHt     = flag.String("addr", ":8000", "http service address")
+	origin     = flag.String("origin", "http://localhost:8080", "origin for check")
 	wsendpoint = flag.String("endpoint", "/ws", "websocket endpoint")
-	homeTempl = template.Must(template.New("").Parse(homeHTML))
+	homeTempl  = template.Must(template.New("").Parse(homeHTML))
 )
 
 func wsHandler(w http.ResponseWriter, r *http.Request) {
@@ -41,8 +42,11 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	chname := r.FormValue("channel")
+	chnames := strings.Split(chname, ",")
 	wrap := NewWS(ws)
-	channels.Add(chname, wrap)
+	for _, c := range chnames {
+		channels.Add(c, wrap)
+	}
 	wrap.ListenAndServe()
 }
 
@@ -63,6 +67,7 @@ func wsRoot(w http.ResponseWriter, r *http.Request) {
 		h = "localhost"
 	}
 	m["Host"] = net.JoinHostPort(h, p)
+	m["Endpoint"] = *wsendpoint
 	homeTempl.Execute(w, m)
 }
 
@@ -97,7 +102,7 @@ const homeHTML = `<!DOCTYPE html>
         <script type="text/javascript">
             (function() {
                 var data = document.getElementById("test");
-                var conn = new WebSocket("ws://{{.Host}}/ws?channel={{.Channel}}");
+                var conn = new WebSocket("ws://{{.Host}}/{{.Endpoint}}?channel={{.Channel}}");
                 conn.onclose = function(evt) {
                     data.textContent = 'Connection closed';
                 }
