@@ -16,3 +16,16 @@ HTTP to websocket proxy for message
   * 'channel' - название канала в который отправляется сообщение
   * 'msg' - сообщение которое передается (может быть любым. Передается без изменений, кроме url_decode)
 
+## docker
+
+Sample:
+```bash
+# run on default settings
+docker run -d --name wsproxy blins1999/webwsproxy:latest 
+
+#open in web browser http://wsproxy:8080
+curl "http://wsproxy:8000/?channel=test&msg=hello%20from%20commandline"
+
+# get help of usage
+docker run -it --rm blins1999/webwsproxy:latest -h
+```
