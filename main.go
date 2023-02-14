@@ -102,7 +102,7 @@ const homeHTML = `<!DOCTYPE html>
         <script type="text/javascript">
             (function() {
                 var data = document.getElementById("test");
-                var conn = new WebSocket("ws://{{.Host}}/{{.Endpoint}}?channel={{.Channel}}");
+                var conn = new WebSocket("ws://{{ .Host | html }}{{ .Endpoint | html }}?channel={{ .Channel | html }}");
                 conn.onclose = function(evt) {
                     data.textContent = 'Connection closed';
                 }
