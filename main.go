@@ -23,6 +23,7 @@ var (
 	addrWs    = flag.String("wsaddr", ":8080", "websocket service address")
 	addrHt    = flag.String("addr", ":8000", "http service address")
 	origin    = flag.String("origin", "http://localhost:8080", "origin for check")
+	wsendpoint = flag.String("endpoint", "/ws", "websocket endpoint")
 	homeTempl = template.Must(template.New("").Parse(homeHTML))
 )
 
@@ -74,13 +75,14 @@ func receiverMsg(w http.ResponseWriter, r *http.Request) {
 	chname := r.FormValue("channel")
 	msg := []byte(r.FormValue("msg"))
 	channels.Send(chname, msg)
+	w.WriteHeader(http.StatusOK)
 }
 
 func main() {
 	flag.Parse()
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", wsRoot)
-	mux.HandleFunc("/ws", wsHandler)
+	mux.HandleFunc(*wsendpoint, wsHandler)
 	go http.ListenAndServe(*addrWs, mux)
 	http.ListenAndServe(*addrHt, http.HandlerFunc(receiverMsg))
 }
